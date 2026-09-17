@@ -113,6 +113,26 @@ def test_exceeding_max_speed_exits_active():
     assert out.mode == "none"
 
 
+# ================= 急刹场景：前车急刹应全力制动 =================
+
+def test_hard_brake_requests_full_brake():
+    """前车急刹（近距离 + 大负相对速度）→ 应全力制动。
+
+    验证输出契约：紧急状态必须满刹车。
+    注意：当前骨架控制器只用距离误差、不用 rel_velocity，
+    本用例只保证"近距离触发全力制动"这一步；
+    rel_velocity 被忽略导致的反应滞后，见 scripts/hard_brake_scenario.py。
+    """
+    sys = make_system()
+    sys.turn_on()
+    sys.activate()
+    target = FrontVehicle(distance=5.0, rel_velocity=-10.0)  # 近距离 + 前车急刹
+    out = sys.step(target, 20.0)
+    assert out.mode == "follow"
+    assert out.accel == sys.cfg.brake_max   # 全力制动
+    assert out.brake == 1.0
+
+
 # ================= 运动学收敛（跟车最终收敛到时距） =================
 
 def test_follow_converges_to_constant_time_gap():
