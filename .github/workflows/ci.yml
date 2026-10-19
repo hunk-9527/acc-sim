@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: pytest (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    # ★ 慢测试护栏：现在的用例 0.03 s 跑完。将来若把 CARLA 闭环用例挂进来，
+    #   单次运行以分钟计，10 分钟上限会把"CI 被拖死"变成一次明确的红灯。
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        # 两个平台都测：Windows 是开发环境（CARLA 只能在 Windows 原生跑），
+        # Ubuntu 是将来部署 / 容器的样子。任何平台特有的路径或编码问题都会在这里露出来。
+        os: [ubuntu-latest, windows-latest]
+    env:
+      # Windows runner 的默认 stdout 编码是 cp1252，中文写进日志会抛 UnicodeEncodeError。
+      # 强制 UTF-8，与本地开发环境保持一致。
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          # 与开发环境一致（本地 3.10.20），避免"CI 绿了本地跑不起来"。
+          python-version: "3.10"
+          cache: pip
+
+      # 装 requirements.txt 而不是只装 pytest：顺带验证依赖清单本身是可安装的。
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 单元测试
+        run: python -m pytest tests -v

@@ -1,5 +1,7 @@
 # acc_sim — ACC 被测系统与自动化评测链路
 
+[![CI](https://github.com/hunk-9527/acc-sim/actions/workflows/ci.yml/badge.svg)](https://github.com/hunk-9527/acc-sim/actions/workflows/ci.yml)
+
 一个自包含的**简化 ACC（自适应巡航）被测系统（SUT）**，配套 pytest 单元测试、批量仿真评测平台和评测报告，
 用于跑通仿真测试的完整链路：
 
